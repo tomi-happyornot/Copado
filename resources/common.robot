@@ -147,3 +147,4 @@ Random Picklist
     Remove Values From List     ${values}                   --None--
     ${values}                   Evaluate                    random.choice(${values})    random
     Pick List                   ${locator}                  ${values}
+    RETURN                      ${values}
