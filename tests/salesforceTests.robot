@@ -2,7 +2,6 @@
 # before running this suite.
 
 *** Settings ***
-Library                    QForce
 Resource                   ../resources/common.robot
 Suite Setup                Setup Browser
 Suite Teardown             End suite
