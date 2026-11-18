@@ -28,10 +28,13 @@ Entering A Lead
     ClickText              New                         partial_match=False
     VerifyText             General Information
     UseModal               On                          # Only find fields from open modal dialog
+    ${FirstName}           First Name
+    ${LastName}            Last Name
+    ${Company}             Company
 
-    Picklist               Salutation                  Ms.
-    TypeText               First Name                  Tina
-    TypeText               Last Name                   Smith
+    Picklist               Salutation                  Dr.
+    TypeText               First Name                  ${FirstName}
+    TypeText               Last Name                   ${LastName} 
     Picklist               Lead Status                 Open, to be contacted
     # generate random phone number, just as an example
     # NOTE: initialization of random number generator is done on suite setup
@@ -39,27 +42,32 @@ Entering A Lead
     # concatenate leading "+" and random numbers
     ${phone}=              SetVariable                 +${rand_phone}
     TypeText               Phone                       ${phone}                    First Name
-    TypeText               Company                     Growmore                    Last Name
+    TypeText               Company                     ${Company}                  Last Name
     TypeText               Title                       Manager                     Address Information
-    TypeText               Email                       tina.smith@gmail.com        Website
-    TypeText               Website                     https://www.growmore.com/
+    TypeText               Email                       ${FirstName}.${LastName}@gmail.com        Website
+    TypeText               Website                     https://www.${Company}.com/
 
-    PickList               Country                     Brazil
-    PickList               Main Industry               Other
-    PickList               Sector                      Other
+    #PickList               Country                     Brazil
+    ${Country}             Random Picklist        Country
+    Set Suite Variable     ${Country} 
+    Random PickList        Main Industry
+    Random PickList        Sector
 
 
     Picklist               Source                      Clay
     ClickText              Save                        partial_match=False
     UseModal               Off
-    Sleep                  1
+    VerifyText             was created
 
-    ClickText              Details
-    VerifyField            Name                        Ms. Tina Smith
+    # ClickText              Details
+    VerifyField            Name                        Dr. ${FirstName} ${LastName} 
     VerifyField            Lead Status                 Open, to be contacted
     VerifyField            Phone                       ${phone}
-    VerifyField            Company                     Growmore
-    VerifyField            Website                     https://www.growmore.com/
+    VerifyField            Company                     ${Company}
+    ${CompanyTrim}         Remove String               ${Company}                        ${SPACE}              ,
+    VerifyField            Website                     https://www.${Company}.com/
+    ${Email}               Convert To Lower Case       ${FirstName}.${LastName}@gmail.com
+    VerifyField            Email                       ${Email}
 
     # as an example, let's check Phone number format. Should be "+" and 14 numbers
     ${phone_num}=          GetFieldValue               Phone
