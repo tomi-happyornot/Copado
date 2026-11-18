@@ -5,6 +5,7 @@ Library                   QForce
 Library                   String
 Library                   DateTime
 Library                   FakerLibrary
+Library                   Collections
 
 
 *** Variables ***
@@ -138,3 +139,14 @@ DeleteLeads
     VerifyNoText          Undo
     ClickText             Leads                    partial_match=False
 
+Random Picklist
+    [Documentation]
+    [Arguments]                 ${locator}                  ${partial_match}=True
+    ${is_disabled}=             GetAttribute                //*[@aria-label\="${locator}"]/..//button             aria-disabled
+    IF                          '${is_disabled}' == 'true'
+        RETURN
+    END
+    ${values}                   Get Pick List               ${locator}                  partial_match=${partial_match}
+    Remove Values From List     ${values}                   --None--
+    ${values}                   Evaluate                    random.choice(${values})    random
+    Pick List                   ${locator}                  ${values}
