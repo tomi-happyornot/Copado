@@ -20,7 +20,7 @@ ${secret}                  ${NONE}                     # SHOULD BE GIVEN IN CRT 
 *** Test Cases ***
 Entering A Lead
     [tags]                 Lead
-    Appstate               Home
+    #Appstate               Home
     JwtAuthenticate        ${jwt_client_id}            ${username}                 ${private_key}              sandbox=true
     JwtLoginAs             ethan.trainor@happy-or-not.com.fullcopy
     LaunchApp              HON Sales (Lightning)
