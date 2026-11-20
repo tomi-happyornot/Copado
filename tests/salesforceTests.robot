@@ -2,6 +2,7 @@
 # before running this suite.
 
 *** Settings ***
+Library                    QForce
 Resource                   ../resources/common.robot
 Suite Setup                Setup Browser
 Suite Teardown             End suite
@@ -19,8 +20,8 @@ ${secret}                  ${NONE}                     # SHOULD BE GIVEN IN CRT 
 *** Test Cases ***
 Entering A Lead
     [tags]                 Lead
-    #Appstate               Home
-    JwtAuthenticate        ${jwt_client_id}            ${username}                 ${private_key}              sandbox=true
+    #Appstate              Home
+    JwtAuthenticate        ${jwt_client_id}            ${username}                 ${private_key}         sandbox=true
     JwtLoginAs             ethan.trainor@happy-or-not.com.fullcopy
     LaunchApp              HON Sales (Lightning)
     ClickText              Leads
@@ -34,7 +35,7 @@ Entering A Lead
 
     Picklist               Salutation                  Dr.
     TypeText               First Name                  ${FirstName}
-    TypeText               Last Name                   ${LastName} 
+    TypeText               Last Name                   ${LastName}
     Picklist               Lead Status                 Open, to be contacted
     # generate random phone number, just as an example
     # NOTE: initialization of random number generator is done on suite setup
@@ -44,12 +45,12 @@ Entering A Lead
     TypeText               Phone                       ${phone}                    First Name
     TypeText               Company                     ${Company}                  Last Name
     TypeText               Title                       Manager                     Address Information
-    TypeText               Email                       ${FirstName}.${LastName}@gmail.com        Website
+    TypeText               Email                       ${FirstName}.${LastName}@gmail.com                 Website
     TypeText               Website                     https://www.${Company}.com/
 
-    #PickList               Country                     Brazil
-    ${Country}             Random Picklist        Country
-    Set Suite Variable     ${Country} 
+    #PickList              Country                     Brazil
+    ${Country}             Random Picklist             Country
+    Set Suite Variable     ${Country}
     Random PickList        Main Industry
     Random PickList        Sector
 
@@ -59,12 +60,12 @@ Entering A Lead
     UseModal               Off
     VerifyText             was created
 
-    # ClickText              Details
-    VerifyField            Name                        Dr. ${FirstName} ${LastName} 
+    # ClickText            Details
+    VerifyField            Name                        Dr. ${FirstName} ${LastName}
     VerifyField            Lead Status                 Open, to be contacted
     VerifyField            Phone                       ${phone}
     VerifyField            Company                     ${Company}
-    ${CompanyTrim}         Remove String               ${Company}                        ${SPACE}              ,
+    ${CompanyTrim}         Remove String               ${Company}                  ${SPACE}               ,
     VerifyField            Website                     https://www.${Company}.com/
     ${Email}               Convert To Lower Case       ${FirstName}.${LastName}@gmail.com
     VerifyField            Email                       ${Email}
@@ -73,179 +74,69 @@ Entering A Lead
     ${phone_num}=          GetFieldValue               Phone
     Should Match Regexp    ${phone_num}                ^[+]\\d{14}$
     ${LeadId}              get record id from url
-    GoToRecord             ${LeadId}
+    Set Suite Variable     ${LeadId}
+    # GoToRecord           ${LeadId}
 
-    ClickText              Leads
-    VerifyText             Tina Smith
-    VerifyText             Manager
-    VerifyText             Growmore
     # just an example of using DateTime Library, let's just log today's date on the Log
-    ${date} =              Get Current Date
-    Log                    Test run on: ${date}
-    
+    # ${date} =            Get Current Date
+    # Log                  Test run on: ${date}
+
 
     #                      DeleteRecord                Lead                        ${LeadId}
 
-Converting A Lead To Opportunity-Account-Contact
-    [tags]                 Lead
-    Appstate               Home
-    LaunchApp              Sales
+Converting Lead
+    [Documentation]        HON Lead conversion
+    [Tags]                 Lead                        Regression
+    JwtAuthenticate        ${jwt_client_id}            ${username}                 ${private_key}         sandbox=true
+    JwtLoginAs             ethan.trainor@happy-or-not.com.fullcopy
+    GoToRecord             ${LeadId}
+    VerifyText             Convert To Oppo
 
-    ClickText              Leads
-    ClickText              Tina Smith
+    #Conver to Oppo flow
 
-    ClickUntil             Convert Lead                Convert
-    ClickText              Opportunity                 2
-    TypeText               Opportunity Name            Growmore Pace
-    ClickText              Convert                     2
-    VerifyText             Your lead has been converted                            timeout=30
+    ClickText              Convert To Oppo
+    VerifyText             Does an Contact exist already for this Lead?
+    ClickText              Next
+    VerifyText             Does an Account exist already for this Lead?
+    PickList               *Main Industry               Other
+    Picklist               Sector                       Other
+    Picklist               *HON Account Size (Override)      Medium
+    ClickText              Next
 
-    ClickText              Go to Leads
-    VerifyNoText           Go to Leads
-    ClickText              Opportunities
-    VerifyText             Growmore Pace
-    ClickText              Accounts
-    VerifyText             Growmore
-    ClickText              Contacts
-    VerifyText             Tina Smith
+    VerifyText             You are about to convert a Lead to an Opportunity.
+    TypeText               *Nr of Months               12
+    ${CloseDate}           Get Current Date            increment=15 days           result_format=%b %-d, %Y
+    TypeText               Estimated Close Date        ${CloseDate}\t 
+    ${StartDate}           Get Current Date            increment=15 days           result_format=%b %-d, %Y
+    PressKey               ${EMPTY}                    {TAB}
+    PressKey               ${EMPTY}                    {TAB}
+    TypeText               Service Start Date          ${StartDate}\t
+    ClickItem              20                        tag=td/span
+    # ClickText              Select a date for Estimated Close Date
+    
 
+    # ClickText    Next Month
 
-Creating An Account
-    [tags]                 Account
-    Appstate               Home
-    LaunchApp              Sales
-
-    ClickText              Accounts
-    ClickUntil             Account Information         New                         partial_match=False
-
-    TypeText               Account Name                Salesforce                  anchor=Parent Account
-    TypeText               Phone                       +12258443456789             anchor=Fax
-    TypeText               Fax                         +12258443456766
-    TypeText               Website                     https://www.salesforce.com
-    Picklist               Type                        Partner
-    Picklist               Industry                    Finance
-
-    TypeText               Employees                   35000
-    TypeText               Annual Revenue              12 billion
-    ClickText              Save                        partial_match=False
-
-    ClickText              Details
-    VerifyText             Salesforce
-    VerifyText             35,000
-
-
-Creating An Opportunity For The Account
-    [tags]                 Account
-    Appstate               Home
-    LaunchApp              Sales
-    ClickText              Accounts
-    VerifyText             Salesforce
-    VerifyText             Opportunities
-
-    ClickUntil             Stage                       Opportunities
-    ClickUntil             Opportunity Information     New                         partial_match=False
-    TypeText               Opportunity Name            Safesforce Pace             anchor=Cancel               delay=2
-    Combobox               Search Accounts...          Salesforce
-    Picklist               Type                        New Business
-    ClickText              Close Date                  Opportunity Information
-    ClickText              Next Month
-    ClickText              Today
-
-    Picklist               Stage                       Prospecting
-    TypeText               Amount                      5000000
-    Picklist               Lead Source                 Partner
-    TypeText               Next Step                   Qualification
-    TypeText               Description                 This is first step
-    ClickText              Save                        partial_match=False         # Do not accept partial match, i.e. "Save All"
-
-    Sleep                  1
-    ClickText              Opportunities
-    VerifyText             Safesforce Pace
-
-
-Change status of opportunity
-    [tags]                 status_change
-    Appstate               Home
-    ClickText              Opportunities
-    VerifyPageHeader       Opportunities
-    ClickText              Safesforce Pace             delay=2                     # intentionally delay action - 2 seconds
-    VerifyText             Contact Roles
-
-    ClickText              Show actions for Contact Roles
-    ClickText              Add Contact Roles
-
-    # verify all following texts from the dialog that opens
-    VerifyAll              Cancel, Show Selected, Name, Add Contact Roles
-    ComboBox               Search Contacts...          Tina Smith                  selection_delay=2
-    ClickText              Next                        delay=3
-    ClickText              Edit Role: Item
-    ClickText              --None--
-    ClickText              Decision Maker
-    ClickText              Save                        partial_match=False
-    VerifyText             Tina Smith
-
-    ClickText              Mark Stage as Complete
-    ClickText              Opportunities               delay=2
-    ClickText              Safesforce Pace
-    ClickText              Details
-    VerifyField            Stage                       Qualification
-    VerifyStage            Qualification               true
-    VerifyStage            Prospecting                 false
-    VerifyStageColor       Qualification               navy
-    VerifyStageColor       Prospecting                 green
-
-
-
-Create A Contact For The Account
-    [tags]                 salesforce.Account
-    Appstate               Home
-    LaunchApp              Sales
-    ClickText              Accounts
-    VerifyText             Salesforce
-    VerifyText             Contacts
-
-    ClickUntil             Email                       Contacts
-    ClickUntil             Contact Information         New                         partial_match=False
-    Picklist               Salutation                  Mr.
-    TypeText               First Name                  Richard
-    TypeText               Last Name                   Brown
-    TypeText               Phone                       +00150345678134             anchor=Mobile
-    TypeText               Mobile                      +00150345678178
-    Combobox               Search Accounts...          Salesforce                  selection_delay=2
-
-    TypeText               Email                       richard.brown@gmail.com     anchor=Reports To
-    TypeText               Title                       Manager
-    ClickText              Save                        partial_match=False
-    Sleep                  1
-    ClickText              Contacts
-    VerifyText             Richard Brown
-
-
-Delete Test Data
-    [tags]                 Test data
-    Appstate               Home
-    LaunchApp              Sales
-    ClickText              Accounts
-    VerifyText             Account Name
-
-    Set Suite Variable     ${data}                     Salesforce
-    RunBlock               NoData                      timeout=180s                exp_handler=DeleteAccounts
-    Set Suite Variable     ${data}                     Growmore
-    RunBlock               NoData                      timeout=180s                exp_handler=DeleteAccounts
-
-    ClickText              Opportunities
-    VerifyPageHeader       Opportunities
-    VerifyNoText           Safesforce Pace
-    VerifyNoText           Growmore Pace
-    VerifyNoText           Richard Brown
-    VerifyNoText           Tina Smith
-
-    # Delete Leads
-    ClickText              Leads
-    VerifyText             Change Owner
-    Set Suite Variable     ${data}                     Tina Smith
-    RunBlock               NoData                      timeout=180s                exp_handler=DeleteLeads
-    Set Suite Variable     ${data}                     John Doe
-    RunBlock               NoData                      timeout=180s                exp_handler=DeleteLeads
-
+    ClickText              Mutual Interest             anchor=Stage
+    ClickText              Mutual Interest             anchor=Measurement Type
+    ClickText              New Rollout                 anchor=Service Type
+    ClickText              New Rollout                 anchor=Back
+    ClickText              Convert
+    VerifyText             Lead successfully updated
+    ClickText              Updating Lead before Conversion
+    VerifyText             Lead converted successfully
+    ClickText              Converting Lead
+    VerifyText             Opportunity updated successfully
+    ClickText              Updating Opportunity after Conversion
+    VerifyText             Account updated successfully
+    ClickText              Updating Account after Conversion
+    ClickText              Done
+    VerifyText             Related List Quick Links
+    VerifyStage            Mutual Interest
+    VerifyStageColor       Mutual Interest             navy
+    VerifyField            Opportunity Name            Young-Hayes                 partial_match=True
+    VerifyField            Opportunity Record Type     General - New Business      partial_match=True
+    VerifyField            Opportunity Currency        USD - U.S. Dollar           partial_match=True
+    VerifyField            Close Date                  11/21/2026                  partial_match=True
+    ClickText              Convert To Oppo
 
