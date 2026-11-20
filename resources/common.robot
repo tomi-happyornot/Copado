@@ -107,7 +107,7 @@ VerifyStageColor
     [Documentation]           Example keyword on how to verify background color of element.
     ...                       Note that this keyword might need adjusting in your instance (colors and locators can be different)
     [Arguments]               ${stage_text}    ${color}=navy
-    &{COLORS}=                Create Dictionary    navy=rgba(3, 45, 96, 1)    green=rgba(172, 243, 228, 1)
+    &{COLORS}=                Create Dictionary    navy=rgba(1, 68, 134, 1)   green=rgba(46, 132, 74, 1)
 
     ${elem}=                  GetWebElement              ${stage_text}    element_type=item
     ${background_color}=      Evaluate                   $elem.value_of_css_property("background-color")
