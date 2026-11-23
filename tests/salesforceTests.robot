@@ -48,7 +48,7 @@ Entering A Lead
     TypeText               Email                       ${FirstName}.${LastName}@gmail.com                 Website
     TypeText               Website                     https://www.${Company}.com/
 
-    #PickList              Country                     Brazil
+    #PickList              Country                     United States
     ${Country}             Random Picklist             Country
     Set Suite Variable     ${Country}
     Random PickList        Main Industry
@@ -179,6 +179,12 @@ Create Quote for Existing Opportunity
     ClickText    Continue
     VerifyText    Selected Products
     ClickText    Add Product
+    # same problem than with CPQ. ask Ilari 
+    
+
+    VerifyText    Select Product Type
+    ClickText    Next
+    ClickElement                        xpath=//*[@id="modal-content-2468"]/slot/div/div/div/div[1]/div/div[1]    timeout=10
     VerifyText    Main Product
     ClickText    Main Product
     ClickText    Next    partial_match=False
@@ -192,3 +198,57 @@ Create Quote for Existing Opportunity
     VerifyText    Selected Products
     ClickText    Save Quote
     UseModal    Off
+    
+    #Edit Quote and Sync it to Opportunity
+    
+
+    VerifyText    Quote (Standard
+    VerifyField    Status    Draft    partial_match=True
+    ClickText    Submit for Approval
+    #Validate country and checkquote without approval requirement
+    
+
+    VerifyField    Approval Status    Approved    partial_match=True
+    ClickText    Start Sync
+    UseModal    On
+    VerifyText    Sync Quote (Standard)
+    ClickText    Continue
+    UseModal    Off
+    VerifyField    Syncing    Syncing    partial_match=True
+    ClickText    Document Generator
+    UseModal    On
+    ClickText    Select a template    anchor=Template
+    ClickText    HON Americas Order Form (HON_AmericasOrderFormPDF)
+    ClickText    Generate             anchor=2
+    UseModal    Off
+    
+    UseModal  On
+    ClickText    Related
+    VerifyText    Quote Documents
+    # Not finding related list every time?
+    ClickText    HON_AmericasOrderFormPDF    anchor=Document Name
+    VerifyText    HON_AmericasOrderFormPDF
+    ClickFieldValue    Quote
+    ClickText    Related
+    VerifyText    Notes & Attachments
+    ClickItem    HON_AmericasOrderFormPDF    anchor=Notes & Attachments
+    VerifyText    HON_AmericasOrderFormPDF
+# Use PDF, how to find correct file to validate
+    VerifyPdfText                        Exhibit A - Order Form
+    ClickText    Close
+    UseModal     Off
+    
+    
+
+    ClickText    Details
+    ClickText    Sent to Customer    anchor=Pending Signature
+    ClickText    Mark as Current Status
+    ClickText    Sent to Customer    anchor=Pending Signature
+    VerifyField    Status    Sent to Customer    partial_match=True
+    ${QuoteName}             GetFieldValue      Quote (Standard) Name
+    ${QuoteArr}              GetFieldValue      ARR   
+    ${QuoteId}              get record id from url
+    ClickFieldValue    Opportunity Name
+    VerifyField    ARR    ${QuoteArr}     partial_match=True
+    ClickText    Quotes (Standard)
+    VerifyText    ${QuoteName}
