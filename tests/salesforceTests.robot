@@ -139,4 +139,56 @@ Converting Lead
     VerifyField            Opportunity Currency        USD - U.S. Dollar           partial_match=True
     VerifyField            Close Date                  11/21/2026                  partial_match=True
     ClickText              Convert To Oppo
+    #Validate Pricebook for Opportunity
 
+
+Edit Opportunity
+    [Documentation]        HON Opportunity Edit
+    [Tags]                 Opportunity
+    # Add selection of opportunity ID to previous test and add here and validate
+
+    ClickText    Edit
+    UseModal    On
+    TypeText    Forecast ARR    15000
+    ClickText    Select a date for Close Date    anchor=Ready for Renewal
+    TypeText    Description    Here should be original customer message from Lea
+    TypeText    \#Nr of Smiley Device Subscriptions    4    anchor=Numbers
+    ClickText    Save    partial_match=False
+    UseModal    Off
+
+
+Create Quote for Existing Opportunity
+    [Documentation]    Create Quote (Standard)
+    [Tags]             Quote(Standard)
+    # Create quote for existing opportunity from previous step. Add Oppo ID from variable
+    #Confirming correct pricebooc for first test
+    VerifyText    Mccarthy, White and Lewis
+     
+    ClickText    Edit Price Book
+    ClickText    Clear Price Book Selection
+    ComboBox    Search Price Books...    STANDARD-USD
+    ClickText    Save
+    #Create Quote
+
+  
+
+    ClickText    Create Quote
+    UseModal    On
+    VerifyText    Select Delivery Option
+    ClickText    One shipping address for all items
+    ClickText    Continue
+    VerifyText    Selected Products
+    ClickText    Add Product
+    VerifyText    Main Product
+    ClickText    Main Product
+    ClickText    Next    partial_match=False
+    VerifyText    Select Main Product
+    VerifyText    Smiley Touch Pipe Leg
+    ClickText    Smiley Touch Pipe Leg
+    ClickText    Next    partial_match=False
+    VerifyText    Select Subproducts
+    ClickText    Add    partial_match=False
+    VerifyText    Create Quote
+    VerifyText    Selected Products
+    ClickText    Save Quote
+    UseModal    Off
