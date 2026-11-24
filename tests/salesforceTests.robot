@@ -109,13 +109,9 @@ Converting Lead
     TypeText               Estimated Close Date        ${CloseDate}\t 
     ${StartDate}           Get Current Date            increment=30 days           result_format=%b %-d, %Y
 
-    ClickFieldValue        Service Start Date
+    #Double click to select existing value filled by setting Close Date
+    ClickText              Service Start Date          doubleclick=True
     TypeText               Service Start Date          ${StartDate}\t
-    #ClickItem              20                        tag=td/span
-    # ClickText              Select a date for Estimated Close Date
-    
-
-    # ClickText    Next Month
 
     ClickText              Mutual Interest             anchor=Stage
     ClickText              Mutual Interest             anchor=Measurement Type
@@ -134,11 +130,14 @@ Converting Lead
     VerifyText             Related List Quick Links
     VerifyStage            Mutual Interest
     VerifyStageColor       Mutual Interest             navy
-    VerifyField            Opportunity Name            Young-Hayes                 partial_match=True
+    UseModal               On
+    VerifyField            Opportunity Name            ${Company}                partial_match=True
     VerifyField            Opportunity Record Type     General - New Business      partial_match=True
     VerifyField            Opportunity Currency        USD - U.S. Dollar           partial_match=True
-    VerifyField            Close Date                  11/21/2026                  partial_match=True
-    ClickText              Convert To Oppo
+    ${CloseDateVerify}     Convert Date                ${CloseDate}                date_format=%b %d, %Y       result_format=%-m/%-d/%Y
+    VerifyField            Close Date                  ${CloseDateVerify}          partial_match=True
+    UseModal               Off
+    #ClickText              Convert To Oppo
     #Validate Pricebook for Opportunity
 
 
