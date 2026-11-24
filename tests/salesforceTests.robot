@@ -21,7 +21,7 @@ ${secret}                  ${NONE}                     # SHOULD BE GIVEN IN CRT 
 Entering A Lead
     [tags]                 Lead
     #Appstate              Home
-    JwtAuthenticate        ${jwt_client_id}            ${username}                 ${private_key}         sandbox=true
+    JwtAuthenticate        ${jwt_client_id}            ${username}                 ${private_key}              sandbox=true
     JwtLoginAs             ethan.trainor@happy-or-not.com.fullcopy
     LaunchApp              HON Sales (Lightning)
     ClickText              Leads
@@ -45,11 +45,16 @@ Entering A Lead
     TypeText               Phone                       ${phone}                    First Name
     TypeText               Company                     ${Company}                  Last Name
     TypeText               Title                       Manager                     Address Information
-    TypeText               Email                       ${FirstName}.${LastName}@gmail.com                 Website
+    TypeText               Email                       ${FirstName}.${LastName}@gmail.com                      Website
     TypeText               Website                     https://www.${Company}.com/
 
-    #PickList              Country                     United States
-    ${Country}             Random Picklist             Country
+    #Hard Coded Country
+    ${Country}             SetVariable                 United States
+    PickList               Country                     ${Country}
+
+    #Random country
+    #${Country}            Random Picklist             Country
+
     Set Suite Variable     ${Country}
     Random PickList        Main Industry
     Random PickList        Sector
@@ -65,7 +70,7 @@ Entering A Lead
     VerifyField            Lead Status                 Open, to be contacted
     VerifyField            Phone                       ${phone}
     VerifyField            Company                     ${Company}
-    ${CompanyTrim}         Remove String               ${Company}                  ${SPACE}               ,
+    ${CompanyTrim}         Remove String               ${Company}                  ${SPACE}                    ,
     VerifyField            Website                     https://www.${Company}.com/
     ${Email}               Convert To Lower Case       ${FirstName}.${LastName}@gmail.com
     VerifyField            Email                       ${Email}
@@ -87,7 +92,7 @@ Entering A Lead
 Converting Lead
     [Documentation]        HON Lead conversion
     [Tags]                 Lead                        Regression
-    JwtAuthenticate        ${jwt_client_id}            ${username}                 ${private_key}         sandbox=true
+    JwtAuthenticate        ${jwt_client_id}            ${username}                 ${private_key}              sandbox=true
     JwtLoginAs             ethan.trainor@happy-or-not.com.fullcopy
     GoToRecord             ${LeadId}
     VerifyText             Convert To Oppo
@@ -98,15 +103,15 @@ Converting Lead
     VerifyText             Does an Contact exist already for this Lead?
     ClickText              Next
     VerifyText             Does an Account exist already for this Lead?
-    PickList               *Main Industry               Other
-    Picklist               Sector                       Other
-    Picklist               *HON Account Size (Override)      Medium
+    PickList               *Main Industry              Other
+    Picklist               Sector                      Other
+    Picklist               *HON Account Size (Override)                            Medium
     ClickText              Next
 
     VerifyText             You are about to convert a Lead to an Opportunity.
     TypeText               *Nr of Months               12
     ${CloseDate}           Get Current Date            increment=15 days           result_format=%b %-d, %Y
-    TypeText               Estimated Close Date        ${CloseDate}\t 
+    TypeText               Estimated Close Date        ${CloseDate}\t
     ${StartDate}           Get Current Date            increment=30 days           result_format=%b %-d, %Y
 
     #Double click to select existing value filled by setting Close Date
@@ -127,127 +132,145 @@ Converting Lead
     VerifyText             Account updated successfully
     ClickText              Updating Account after Conversion
     ClickText              Done
+
     VerifyText             Related List Quick Links
+    ${OppoId}              get record id from url
+    Set Suite Variable     ${OppoId}
+    #Checks on Created Opportunity
     VerifyStage            Mutual Interest
     VerifyStageColor       Mutual Interest             navy
-    UseModal               On
-    VerifyField            Opportunity Name            ${Company}                partial_match=True
+    VerifyField            Opportunity Name            ${Company}                  partial_match=True
     VerifyField            Opportunity Record Type     General - New Business      partial_match=True
     VerifyField            Opportunity Currency        USD - U.S. Dollar           partial_match=True
+    #Saving date variables to display format for comparison
     ${CloseDateVerify}     Convert Date                ${CloseDate}                date_format=%b %d, %Y       result_format=%-m/%-d/%Y
     VerifyField            Close Date                  ${CloseDateVerify}          partial_match=True
-    UseModal               Off
-    #ClickText              Convert To Oppo
-    #Validate Pricebook for Opportunity
+    ${StartDateVerify}     Convert Date                ${StartDate}                date_format=%b %d, %Y       result_format=%-m/%-d/%Y
+    ScrollTo               Service Start Date
+    VerifyField            Service Start Date          ${StartDateVerify}          partial_match=True
+
+    ClickText              All Data
+    VerifyText             Opportunity Information
+    #Price Book validation - Could be changed to dynamic
+    ScrollTo               Price Book
+    VerifyField            Price Book                  STANDARD-USD                tag=a                       partial_match=True
 
 
 Edit Opportunity
     [Documentation]        HON Opportunity Edit
     [Tags]                 Opportunity
     # Add selection of opportunity ID to previous test and add here and validate
+    GoToRecord             ${OppoId}
+    VerifyText             Related List Quick Links
 
-    ClickText    Edit
-    UseModal    On
-    TypeText    Forecast ARR    15000
-    ClickText    Select a date for Close Date    anchor=Ready for Renewal
-    TypeText    Description    Here should be original customer message from Lea
-    TypeText    \#Nr of Smiley Device Subscriptions    4    anchor=Numbers
-    ClickText    Save    partial_match=False
-    UseModal    Off
+    ClickText              Edit
+    UseModal               On
+    TypeText               Forecast ARR                15000
+    ClickText              Select a date for Close Date                            anchor=Ready for Renewal
+    TypeText               Description                 Here should be original customer message from Lea
+    TypeText               \#Nr of Smiley Device Subscriptions                     4                           anchor=Numbers
+    ClickText              Save                        partial_match=False
+    UseModal               Off
+
+    #Verifying edits
+    VerifyText             Related List Quick Links
+    VerifyField            Forecast ARR                USD 15,000.00
+    ScrollTo               \#Nr of Smiley Device Subscriptions
+    VerifyField            \#Nr of Smiley Device Subscriptions                     4                           partial_match=True
 
 
 Create Quote for Existing Opportunity
-    [Documentation]    Create Quote (Standard)
-    [Tags]             Quote(Standard)
+    [Documentation]        Create Quote (Standard)
+    [Tags]                 Quote(Standard)
     # Create quote for existing opportunity from previous step. Add Oppo ID from variable
     #Confirming correct pricebooc for first test
-    VerifyText    Mccarthy, White and Lewis
-     
-    ClickText    Edit Price Book
-    ClickText    Clear Price Book Selection
-    ComboBox    Search Price Books...    STANDARD-USD
-    ClickText    Save
+    VerifyText             Mccarthy, White and Lewis
+
+    ClickText              Edit Price Book
+    ClickText              Clear Price Book Selection
+    ComboBox               Search Price Books...       STANDARD-USD
+    ClickText              Save
     #Create Quote
 
-  
 
-    ClickText    Create Quote
-    UseModal    On
-    VerifyText    Select Delivery Option
-    ClickText    One shipping address for all items
-    ClickText    Continue
-    VerifyText    Selected Products
-    ClickText    Add Product
-    # same problem than with CPQ. ask Ilari 
-    
 
-    VerifyText    Select Product Type
-    ClickText    Next
-    ClickElement                        xpath=//*[@id="modal-content-2468"]/slot/div/div/div/div[1]/div/div[1]    timeout=10
-    VerifyText    Main Product
-    ClickText    Main Product
-    ClickText    Next    partial_match=False
-    VerifyText    Select Main Product
-    VerifyText    Smiley Touch Pipe Leg
-    ClickText    Smiley Touch Pipe Leg
-    ClickText    Next    partial_match=False
-    VerifyText    Select Subproducts
-    ClickText    Add    partial_match=False
-    VerifyText    Create Quote
-    VerifyText    Selected Products
-    ClickText    Save Quote
-    UseModal    Off
-    
+    ClickText              Create Quote
+    UseModal               On
+    VerifyText             Select Delivery Option
+    ClickText              One shipping address for all items
+    ClickText              Continue
+    VerifyText             Selected Products
+    ClickText              Add Product
+    # same problem than with CPQ. ask Ilari
+
+
+    VerifyText             Select Product Type
+    ClickText              Next
+    ClickElement           xpath=//*[@id="modal-content-2468"]/slot/div/div/div/div[1]/div/div[1]              timeout=10
+    VerifyText             Main Product
+    ClickText              Main Product
+    ClickText              Next                        partial_match=False
+    VerifyText             Select Main Product
+    VerifyText             Smiley Touch Pipe Leg
+    ClickText              Smiley Touch Pipe Leg
+    ClickText              Next                        partial_match=False
+    VerifyText             Select Subproducts
+    ClickText              Add                         partial_match=False
+    VerifyText             Create Quote
+    VerifyText             Selected Products
+    ClickText              Save Quote
+    UseModal               Off
+
     #Edit Quote and Sync it to Opportunity
-    
 
-    VerifyText    Quote (Standard
-    VerifyField    Status    Draft    partial_match=True
-    ClickText    Submit for Approval
+
+    VerifyText             Quote (Standard
+    VerifyField            Status                      Draft                       partial_match=True
+    ClickText              Submit for Approval
     #Validate country and checkquote without approval requirement
-    
 
-    VerifyField    Approval Status    Approved    partial_match=True
-    ClickText    Start Sync
-    UseModal    On
-    VerifyText    Sync Quote (Standard)
-    ClickText    Continue
-    UseModal    Off
-    VerifyField    Syncing    Syncing    partial_match=True
-    ClickText    Document Generator
-    UseModal    On
-    ClickText    Select a template    anchor=Template
-    ClickText    HON Americas Order Form (HON_AmericasOrderFormPDF)
-    ClickText    Generate             anchor=2
-    UseModal    Off
-    
-    UseModal  On
-    ClickText    Related
-    VerifyText    Quote Documents
+
+    VerifyField            Approval Status             Approved                    partial_match=True
+    ClickText              Start Sync
+    UseModal               On
+    VerifyText             Sync Quote (Standard)
+    ClickText              Continue
+    UseModal               Off
+    VerifyField            Syncing                     Syncing                     partial_match=True
+    ClickText              Document Generator
+    UseModal               On
+    ClickText              Select a template           anchor=Template
+    ClickText              HON Americas Order Form (HON_AmericasOrderFormPDF)
+    ClickText              Generate                    anchor=2
+    UseModal               Off
+
+    UseModal               On
+    ClickText              Related
+    VerifyText             Quote Documents
     # Not finding related list every time?
-    ClickText    HON_AmericasOrderFormPDF    anchor=Document Name
-    VerifyText    HON_AmericasOrderFormPDF
-    ClickFieldValue    Quote
-    ClickText    Related
-    VerifyText    Notes & Attachments
-    ClickItem    HON_AmericasOrderFormPDF    anchor=Notes & Attachments
-    VerifyText    HON_AmericasOrderFormPDF
-# Use PDF, how to find correct file to validate
-    VerifyPdfText                        Exhibit A - Order Form
-    ClickText    Close
-    UseModal     Off
-    
-    
+    ClickText              HON_AmericasOrderFormPDF    anchor=Document Name
+    VerifyText             HON_AmericasOrderFormPDF
+    ClickFieldValue        Quote
+    ClickText              Related
+    VerifyText             Notes & Attachments
+    ClickItem              HON_AmericasOrderFormPDF    anchor=Notes & Attachments
+    VerifyText             HON_AmericasOrderFormPDF
+    # Use PDF, how to find correct file to validate
+    VerifyPdfText          Exhibit A - Order Form
+    ClickText              Close
+    UseModal               Off
 
-    ClickText    Details
-    ClickText    Sent to Customer    anchor=Pending Signature
-    ClickText    Mark as Current Status
-    ClickText    Sent to Customer    anchor=Pending Signature
-    VerifyField    Status    Sent to Customer    partial_match=True
-    ${QuoteName}             GetFieldValue      Quote (Standard) Name
-    ${QuoteArr}              GetFieldValue      ARR   
-    ${QuoteId}              get record id from url
-    ClickFieldValue    Opportunity Name
-    VerifyField    ARR    ${QuoteArr}     partial_match=True
-    ClickText    Quotes (Standard)
-    VerifyText    ${QuoteName}
+
+
+    ClickText              Details
+    ClickText              Sent to Customer            anchor=Pending Signature
+    ClickText              Mark as Current Status
+    ClickText              Sent to Customer            anchor=Pending Signature
+    VerifyField            Status                      Sent to Customer            partial_match=True
+    ${QuoteName}           GetFieldValue               Quote (Standard) Name
+    ${QuoteArr}            GetFieldValue               ARR
+    ${QuoteId}             get record id from url
+    ClickFieldValue        Opportunity Name
+    VerifyField            ARR                         ${QuoteArr}                 partial_match=True
+    ClickText              Quotes (Standard)
+    VerifyText             ${QuoteName}
