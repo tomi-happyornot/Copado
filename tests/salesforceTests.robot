@@ -107,11 +107,11 @@ Converting Lead
     TypeText               *Nr of Months               12
     ${CloseDate}           Get Current Date            increment=15 days           result_format=%b %-d, %Y
     TypeText               Estimated Close Date        ${CloseDate}\t 
-    ${StartDate}           Get Current Date            increment=15 days           result_format=%b %-d, %Y
-    PressKey               ${EMPTY}                    {TAB}
-    PressKey               ${EMPTY}                    {TAB}
+    ${StartDate}           Get Current Date            increment=30 days           result_format=%b %-d, %Y
+
+    ClickFieldValue        Service Start Date
     TypeText               Service Start Date          ${StartDate}\t
-    ClickItem              20                        tag=td/span
+    #ClickItem              20                        tag=td/span
     # ClickText              Select a date for Estimated Close Date
     
 
