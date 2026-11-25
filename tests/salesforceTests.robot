@@ -144,15 +144,15 @@ Converting Lead
     VerifyField            Opportunity Currency        USD - U.S. Dollar           partial_match=True
     #Saving date variables to display format for comparison
     ${CloseDateVerify}     Convert Date                ${CloseDate}                date_format=%b %d, %Y       result_format=%-m/%-d/%Y
+    ScrollTo               Close Date                  anchor=2
     VerifyField            Close Date                  ${CloseDateVerify}          partial_match=True
     ${StartDateVerify}     Convert Date                ${StartDate}                date_format=%b %d, %Y       result_format=%-m/%-d/%Y
     ScrollTo               Service Start Date
     VerifyField            Service Start Date          ${StartDateVerify}          partial_match=True
-
     ClickText              All Data
     VerifyText             Opportunity Information
     #Price Book validation - Could be changed to dynamic
-    ScrollTo               Price Book
+    ScrollTo               Price Book                  anchor=2
     VerifyField            Price Book                  STANDARD-USD                tag=a                       partial_match=True
 
 
@@ -174,25 +174,29 @@ Edit Opportunity
 
     #Verifying edits
     VerifyText             Related List Quick Links
+    ScrollTo               Forecast ARR
     VerifyField            Forecast ARR                USD 15,000.00
     ScrollTo               \#Nr of Smiley Device Subscriptions
     VerifyField            \#Nr of Smiley Device Subscriptions                     4                           partial_match=True
 
+    VerifyText             ${Company}
 
-Create Quote for Existing Opportunity
-    [Documentation]        Create Quote (Standard)
-    [Tags]                 Quote(Standard)
-    # Create quote for existing opportunity from previous step. Add Oppo ID from variable
-    #Confirming correct pricebooc for first test
-    VerifyText             Mccarthy, White and Lewis
+    ClickText              All Data
+    VerifyText             Opportunity Information
 
+    ScrollTo               Price Book                  anchor=2
     ClickText              Edit Price Book
     ClickText              Clear Price Book Selection
     ComboBox               Search Price Books...       STANDARD-USD
     ClickText              Save
+
+Create Quote for Existing Opportunity
+    [Documentation]        Create Quote (Standard)
+    [Tags]                 Quote(Standard)
+
     #Create Quote
-
-
+    GoToRecord             ${OppoId}
+    VerifyText             Related List Quick Links
 
     ClickText              Create Quote
     UseModal               On
@@ -201,25 +205,42 @@ Create Quote for Existing Opportunity
     ClickText              Continue
     VerifyText             Selected Products
     ClickText              Add Product
+    UseModal               Off
     # same problem than with CPQ. ask Ilari
 
-
     VerifyText             Select Product Type
-    ClickText              Next
-    ClickElement           xpath=//*[@id="modal-content-2468"]/slot/div/div/div/div[1]/div/div[1]              timeout=10
-    VerifyText             Main Product
-    ClickText              Main Product
-    ClickText              Next                        partial_match=False
+    #Open version to select first option regardless of dynamic content number
+    ClickElement           xpath=//*[starts-with(@id,"modal-content-")]/slot/div/div/div/div[1]                timeout=10
+
+    ClickElement           xpath=/html/body/lightning-overlay-container/div/lightning-modal-base/lightning-focus-trap/slot/section/div/div/lightning-modal/lightning-modal-footer/div/slot/div/div[2]/lightning-button/button    timeout=10
+
     VerifyText             Select Main Product
+
+    #Click Smiley Digital ([3] at the end of path refers to 3rd product in the list)
+    ClickElement           xpath=//*[starts-with(@id,"modal-content-")]/slot/div/div/div/div[3]                timeout=10
+    ClickText              Next                        partial_match=False
+
+    VerifyText             Selected: Smiley Digital
+    ClickText              Add                         partial_match=False
+
+    #Back in Edit lines Main view
+    VerifyText             Selected Products
+
+    VerifyText             WEB-SMILEY-DIGITAL
+    VerifyText             SMILEY-DIGITAL-SETUP-FEE
+    VerifyText             WEB-SMILEY-SUB-LIST
+
+
+    ClickText              Add Product
+    VerifyText             Select Subproduct
     VerifyText             Smiley Touch Pipe Leg
-    ClickText              Smiley Touch Pipe Leg
+    #ClickText             Smiley Touch Pipe Leg
     ClickText              Next                        partial_match=False
     VerifyText             Select Subproducts
     ClickText              Add                         partial_match=False
     VerifyText             Create Quote
     VerifyText             Selected Products
     ClickText              Save Quote
-    UseModal               Off
 
     #Edit Quote and Sync it to Opportunity
 
